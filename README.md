@@ -5,14 +5,14 @@ The intent of this repository is to demonstrate my skills as a Drupal developer.
 
 Note that client names have been redacted thoroughly throughout the code. The code samples are as follows:
 
-## d8theme and d7theme
+## d8_theme and d7_theme
  - A demonstration of a Drupal 8 theme and a Drupal 7 theme, respectively
  - Both themes are built in the following fashion:
    - Built with Sass and Grunt (via Node)
    - Built on Bootstrap
    - Demonstrates use of Bootstrap, flexbox, CSS3 attributes, etc.
 
-## d8modules
+## d8_modules
  - A suite of tools for interacting with the SOAP API provided by NetForum
  - Demonstrates understanding of:
    - Drupal 8 Custom
@@ -26,7 +26,7 @@ Note that client names have been redacted thoroughly throughout the code. The co
    - Form to manually run the sync
    - Cron job to pull in data on a regular basis
 
-## d7module
+## d7_module
  - A custom module for syncronizing data between Partners Healthcare's Mentor system and Drupal
  - Provides a form for manually syncing various parts of the data
  - Massages data from a series of CSV files
