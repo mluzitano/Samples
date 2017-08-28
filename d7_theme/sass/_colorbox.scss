@@ -1,0 +1,21 @@
+
+
+
+#cboxPrevious,
+#cboxNext,
+#cboxClose {
+  background: url();
+  color: #000;
+  text-indent: 0;
+  width: 20px;
+  height: 20px;
+}
+#cboxClose {
+  opacity: 1;
+  color: #FFF;
+  top: -6px;
+  line-height: 0;
+  font-size: 20px;
+  text-shadow: 0px 0px 3px #000;
+  cursor: pointer;
+}

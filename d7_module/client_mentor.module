@@ -1,0 +1,510 @@
+<?php
+/**
+ * Implements hook_menu()
+ */
+function client_mentor_menu(){
+  $items['admin/config/services/clientementor'] = array(
+    'title' => 'client Mentor Sync',
+    'access arguments' => array('Sync client mentor'),
+    'type' => MENU_NORMAL_ITEM,
+    'page callback' => 'client_mentor_config_pg',
+    'weight' => 0,
+  );
+  return $items;
+}
+/**
+ * Implements hook_permission()
+ */
+function client_mentor_permission() {
+  return array(
+    'Sync client mentor' => array(
+      'description' => t('Sync mentor data to Faculty/staff data'),
+      'title' => t('Sync Mentor data to Faculty / Staff'),
+      'restrict access' => false,
+    ),
+  );
+}
+
+/**
+ * page callback
+ */
+function client_mentor_config_pg() {
+  $fm1 = drupal_get_form('client_mentor_config');
+  $fm2 = drupal_get_form('client_mentor_form');
+  return render($fm1). render($fm2);
+}
+
+/**
+ * form callback
+ */
+function client_mentor_config($form) {
+  $api_url = variable_get('clientmentor_api_url');
+  $api_user = variable_get('clientmentor_api_user');
+  $api_pswd = variable_get('clientmentor_api_pswd');
+  $inst_id = variable_get('clientmentor_inst_id');
+
+  $form['api_url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Mentor Service URL'),
+    '#default_value' => empty($api_url) ? '' : $api_url,
+    '#required' => TRUE,
+  );
+  $form['inst_id'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Mentor Institution ID'),
+    '#default_value' => empty($inst_id) ? '' : $inst_id,
+    '#required' => TRUE,
+  );
+  $form['api_user'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Mentor Service Username'),
+    '#default_value' => empty($api_user) ? '' : $api_user,
+    '#required' => TRUE,
+  );
+
+  $form['api_pswd'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Mentor Service Password'),
+    '#default_value' => empty($api_pswd) ? '' : $api_pswd,
+    '#required' => TRUE,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  return $form;
+}
+
+function client_mentor_config_submit($form, $form_state) {
+  $vals = $form_state['values'];
+  variable_set('clientmentor_api_url', $vals['api_url']);
+  variable_set('clientmentor_api_user', $vals['api_user']);
+  variable_set('clientmentor_api_pswd', $vals['api_pswd']);
+  variable_set('clientmentor_inst_id', $vals['inst_id']);
+
+  drupal_set_message('Settings have been saved', 'status');
+}
+
+/**
+ * form callback
+ */
+function client_mentor_form($form, $form_state) {
+  $form['intro'] = array(
+    '#markup' => '<div style="margin:20px 0; padding-top:20px; border-top:1px solid #ccc;">'.t('Load data from Mentor, and sync with faculty / staff web profiles.').'</div>',
+  );
+
+  $opts = array(
+    'downloadFacultyInformation' => t('Faculty Information'),
+    'downloadPublications' => t('Faculty Publications'),
+    'downloadPresentations' => t('Faculty Presentations'),
+    'downloadEducationalHistory' => t('Educational History'),
+    'downloadProfessionalService' => t('Professional Affiliations'),
+  );
+  //'downloadHonors' => t('Faculty Honors'),
+  //'downloadOrgTreeInfo' => t('Org Tree'),  doesn't apply?
+  //'downloadCertificatesAndLicensures' => t('Certificates and Licenses'),  (no Drupal field to match this)
+
+
+  $form['file_data'] = array(
+    '#type' => 'select',
+    '#title' => t('Select which data to sync'),
+    '#default_value' => empty($form_state['values']['file_data']) ? '' : $form_state['values']['file_data'],
+    '#required' => TRUE,
+    '#options' => $opts,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Sync data'),
+  );
+  return $form;
+}
+function client_mentor_form_validate($form, $form_state) {
+  $form_url = variable_get('clientmentor_api_url');
+  $api_user = variable_get('clientmentor_api_user');
+  $api_pswd = variable_get('clientmentor_api_pswd');
+  $inst_id = variable_get('clientmentor_inst_id');
+
+  if(empty($form_url)) {
+    form_set_error('file_data', t('No Mentor Service URL found'));
+  }
+  if(empty($api_user)) {
+    form_set_error('file_data', t('No Mentor Service Username found'));
+  }
+  if(empty($api_pswd)) {
+    form_set_error('file_data', t('No Mentor Service Password found'));
+  }
+  if(empty($inst_id)) {
+    form_set_error('file_data', t('No Mentor Institution ID found'));
+  }
+}
+
+/**
+ * Implements hook_form_submit()
+ */
+function client_mentor_form_submit($form, &$form_state) {
+  $form_url = variable_get('clientmentor_api_url');
+  $api_user = variable_get('clientmentor_api_user');
+  $api_pswd = variable_get('clientmentor_api_pswd');
+  $inst_id = variable_get('clientmentor_inst_id');
+
+  $data_to_post = array();
+  $data_to_post['method'] = $form_state['values']['file_data'];
+  $data_to_post['returnType'] = 'text/csv';
+  $data_to_post['institutionID'] = $inst_id;
+  $data_to_post['username'] = $api_user;
+  $data_to_post['password'] = $api_pswd;
+  $curl = curl_init();
+
+  curl_setopt_array($curl, array(
+    CURLOPT_URL => "https://www.axiommentor.com/remote/downloads.cfc",
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_ENCODING => "",
+    CURLOPT_MAXREDIRS => 10,
+    CURLOPT_TIMEOUT => 30,
+    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    CURLOPT_CUSTOMREQUEST => "POST",
+    CURLOPT_POSTFIELDS => $data_to_post,
+    //CURLOPT_POSTFIELDS => "-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"method\"\r\n\r\ndownloadPublications\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"returnType\"\r\n\r\ntext/csv\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"institutionID\"\r\n\r\nmghclient\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"username\"\r\n\r\nbcoda\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"password\"\r\n\r\nWohDXv1zGvuK\r\n-----011000010111000001101001--\r\n",
+    /*CURLOPT_HTTPHEADER => array(
+      "content-type: multipart/form-data; boundary=---011000010111000001101001"
+    ),*/
+  ));
+
+  $result = curl_exec($curl);
+  //watchdog('CURL', 'response: ' . print_r($result, true));
+  $err = curl_error($curl);
+
+  curl_close($curl);
+
+  if ($err) {
+    echo "cURL Error #:" . $err;
+  } else {
+//    echo $response;
+  }
+
+  $fv = $form_state['values'];
+
+  //need to escape newline characters within quotes
+  if ($fv['file_data'] == 'downloadPublications' || $fv['file_data'] == 'downloadPresentations') {
+    $pattern = '#\\n(?=[^"]*"[^"]*(?:"[^"]*"[^"]*)*$)#';
+    //$result = preg_replace($pattern, ' ', $result);
+    $pattern = '#\\r(?=[^"]*"[^"]*(?:"[^"]*"[^"]*)*$)#';
+    //$result = preg_replace($pattern, ' ', $result);
+  }
+
+  $data = str_getcsv($result, "\n");
+
+  $result = str_replace('=""','="',$result);
+  $result = str_replace('"" ','" ',$result);
+  $result = str_replace('"">','">',$result);
+  if ($fv['file_data'] == 'downloadFacultyInformation') {
+    $results =  _update_faculty_info($data, 'email');
+  }
+  if ($fv['file_data'] == 'downloadPublications') {
+    $results = client_mentor_items($data, 'publications');
+  }
+  if ($fv['file_data'] == 'downloadPresentations') {
+    $results = client_mentor_items($data, 'presentations');
+  }
+  if ($fv['file_data'] == 'downloadHonors') {
+    $results = client_mentor_items($data, 'honors');
+  }
+  if($fv['file_data'] == 'downloadEducationalHistory') {
+    $results = client_mentor_items($data, 'education');
+  }
+  if ($fv['file_data'] == 'downloadProfessionalService') {
+    $results = client_mentor_items($data, 'service');
+  }
+  if ($fv['file_data'] == 'downloadCertificatesAndLicensures') {
+    $results = client_mentor_items($data, 'certificates');
+  }
+
+
+  $output = '';
+  $output .= t('Updated @count records', array('@count' => $results['count']));;
+
+  if(!empty($results['faculty_not_found'])) {
+    $output .= '<p>'.t('In trying to sync Mentor profile data by email, these were not found so they have been created:') . '</p><ul>';
+    $output .= $results['faculty_not_found'];
+    $output .= '</ul>';
+  }
+  drupal_set_message($output, 'status');
+}
+
+function _get_safe_value($row, $col) {
+  if(!empty($row[$col])) {
+    return $row[$col];
+  } else {
+    return '';
+  }
+}
+
+/*
+ *  Initially we run this and match by email, to insert the person's pidm - the Mentor field we use
+ *  to match the data in all other processes.
+ *  We also add any new people to Drupal.
+ */
+function _update_faculty_info($data, $matchBy = 'pidm') {
+  $count = 0;
+  $not_found = '';
+
+  foreach($data as $item){
+    $row = str_getcsv($item);
+    $person = new stdClass();
+    $person->pidm = _get_safe_value($row, 1);
+    $person->firstName = _get_safe_value($row, 3);
+    $person->middleName = _get_safe_value($row, 4);
+    $person->lastName = _get_safe_value($row, 5);
+    $person->credentials = _get_safe_value($row, 6);
+    $person->prefix = _get_safe_value($row, 7);
+    $person->title = _get_safe_value($row, 8);
+    $person->email = _get_safe_value($row, 9);
+    $person->sysEmail = _get_safe_value($row, 10);
+    $person->officeLocation = _get_safe_value($row, 14);
+    $person->rank = _get_safe_value($row, 15);
+    $person->dateOfAppointment = _get_safe_value($row, 16);
+    $person->dateOfRank = _get_safe_value($row, 17);
+    $person->dateOfTenure = _get_safe_value($row, 18);
+    $person->homePageUrl = _get_safe_value($row, 20);
+    $person->primaryDepartment = _get_safe_value($row, 21);
+    $person->primaryDepartmentSchool = _get_safe_value($row, 22);
+
+    if(empty($person->email) && !empty($person->sysEmail)) {
+      $person->email = $person->sysEmail;
+    }
+    if(!empty($person->firstName) && $person->firstName != 'firstName' && !empty($person->lastName)) {
+      if($matchBy == 'email') {
+        if(!empty($person->email)) {
+          //search for the nid by email:
+          $nid = db_query("SELECT nid FROM {node}, {field_data_field_email} fe
+        WHERE type = 'faculty_staff' 
+        AND fe.entity_type = 'node'
+        AND fe.entity_id = node.nid
+        AND field_email_value = :em", array(':em' => $person->email))->fetchField();
+        }
+      } else {
+        $nid = db_query("SELECT nid FROM {node}, {field_data_field_mentor_pidm} pi
+        WHERE type = 'faculty_staff' 
+        AND pi.entity_type = 'node'
+        AND pi.entity_id = node.nid
+        AND field_mentor_pidm_value = :pidm", array(':pidm' => $person->pidm))->fetchField();
+      }
+      if(!empty($nid)) {
+        $node = node_load($nid);
+        $entity = entity_metadata_wrapper('node', $node);
+
+        $name = $person->firstName . ' '.$person->middleName. ' '.$person->lastName.' '.$person->credentials;
+        $entity->title->set((string) $name);
+        $entity->field_internal_title->set((string) $name);
+        $entity->field_email->set($person->email);
+        $entity->field_institute_title->set($person->title);
+        $entity->field_first_name->set($person->firstName);
+        $entity->field_last_name->set($person->lastName);
+        $entity->field_middle_name->set($person->middleName);
+        $entity->field_suffix->set($person->credentials);
+        $entity->field_email->set($person->email);
+        $entity->field_email_contact->set($person->sysEmail);
+        $entity->field_location->set($person->officeLocation);
+        $entity->field_mentor_pidm->set($person->pidm);
+        $entity->save();
+        $count++;
+      } else {
+        $e = entity_create('node', array('type' => 'faculty_staff'));
+        $e->uid = 1;
+        $entity = entity_metadata_wrapper('node', $e);
+        $name = $person->firstName . ' '.$person->middleName. ' '.$person->lastName.' '.$person->credentials;
+        $entity->title->set((string) $name);
+        $entity->field_internal_title->set((string) $name);
+        $entity->field_email->set($person->email);
+        $entity->field_institute_title->set($person->title);
+        $entity->field_first_name->set($person->firstName);
+        $entity->field_last_name->set($person->lastName);
+        $entity->field_middle_name->set($person->middleName);
+        $entity->field_suffix->set($person->credentials);
+        $entity->field_email->set($person->email);
+        $entity->field_email_contact->set($person->sysEmail);
+        $entity->field_location->set($person->officeLocation);
+        $entity->field_mentor_pidm->set($person->pidm);
+        $entity->save();
+        $not_found .= '<li>'. filter_xss($person->firstName . ' '.$person->middleName. ' '.$person->lastName).'</li>';
+      }
+    }
+  }
+  return array('count' => $count, 'faculty_not_found' => $not_found);
+}
+
+function update_mentor_nodes($node, $field, $item_text) {
+  $entity = entity_metadata_wrapper('node', $node);
+
+  if ($field == 'publications') {
+    $lname = $entity->field_last_name->value();
+    $item_text = str_replace($lname, '<strong>'.$lname.'</strong>', $item_text);
+    $entity->field_publications->set(array(
+      'value' => $item_text,
+      'format' => 'full_html'
+    ));
+  }
+  if ($field == 'presentations') {
+    $lname = $entity->field_last_name->value();
+    $item_text = str_replace($lname, '<strong>'.$lname.'</strong>', $item_text);
+    $entity->field_presentations->set(array(
+      'value' => $item_text,
+      'format' => 'full_html'
+    ));
+  }
+  /* we might create a field for this, but right now there isn't one.
+   * if ($field == 'honors') {
+    $entity->field_accomplishments->set(array(
+      'value' => $item_text,
+      'format' => 'full_html'
+    ));
+  }*/
+  if ($field == 'education') {
+    $entity->field_education->set(array(
+      'value' => $item_text,
+      'format' => 'full_html'
+    ));
+  }
+  if ($field == 'service') {
+    $entity->field_affiliations->set(array(
+      'value' => $item_text,
+      'format' => 'full_html'
+    ));
+  }
+  $entity->save();
+
+
+}
+
+function get_object_from_row($row, $field) {
+  $obj = new stdClass();
+  $obj->pidm = _get_safe_value($row, 1);
+  $obj->refType = _get_safe_value($row, 3);
+  $obj->refID = _get_safe_value($row, 4);
+  $obj->date = _get_safe_value($row, 5);
+  $obj->dateLastUpdated = _get_safe_value($row, 6);
+  $obj->mainText = _get_safe_value($row, 7);
+  if($field == 'certificates') {
+    $obj->sortOrder = _get_safe_value($row, 6);
+    $obj->dateLastUpdated = _get_safe_value($row, 7);
+    $obj->mainText = _get_safe_value($row, 8);
+  }
+  if($field == 'education') {
+    $obj->date = _get_safe_value($row, 4);
+    $obj->sortOrder = _get_safe_value($row, 5);
+    $obj->dateLastUpdated = _get_safe_value($row, 7);
+    $obj->mainText = _get_safe_value($row, 8);
+  }
+  return $obj;
+}
+
+/*
+ * Parse through the other CSV data.  Columns are named slightly different but the column count is same, and
+ * data is pretty close in each CSV file.
+ */
+function client_mentor_items($data, $field) {
+  $count = 0;
+  $unique_ids = array();
+
+  //first get an array of unique IDs, aka PIDMs
+  foreach ($data as $line) {
+    $row = str_getcsv($line);
+    if (!empty($row[1]) && !in_array($row[1], $unique_ids) && $row[1] != 'pidm') {
+      $unique_ids[] = $row[1];
+    }
+  }
+
+  //now go through and look for the data by ID
+  foreach ($unique_ids as $id) {
+    $collected = array();
+    foreach ($data as $line) {
+      $row = str_getcsv($line);
+      //Depending on the field passed, the initial $obj attribute values could be
+      //overwritten. The sync accounts for differences in the CSV files between
+      //types of syncs being run.
+      if (!empty($row[1]) && $row[1] == $id) {
+
+
+        $obj = get_object_from_row($row, $field);
+        $collected[] = $obj;
+
+        //Group by itemType so we can show groupings of Articles, Books, Chapters, etc.
+        $itemTypes = array();
+        foreach ($collected as $item) {
+          if (array_search($item->refType, $itemTypes) === FALSE) {
+            $itemTypes[] = $item->refType;
+          }
+        }
+
+        $item_text = '';
+        foreach ($itemTypes as $itemType) {
+          if ($field == 'publications' || $field == 'presentations') {
+            $item_text .= '<h4>' . $itemType . 's</h4>'; //plural
+          }
+          if ($field == 'education') {
+            usort($collected, 'client_mentor_compare_weights');
+          }
+          foreach ($collected as $item) {
+            if ($item->refType == $itemType && $field != 'education') {
+              $item_text .= '<p>' . $item->mainText . '</p>';
+            }
+            if ($item->refType == $itemType && $field == 'education') {
+              $item_text .=  $item->mainText . '<br>';
+            }
+          }
+        }
+
+        //load the correct faculty node by pidm
+        $nid = db_query("SELECT nid FROM {node}, {field_data_field_mentor_pidm} pi
+        WHERE type = 'faculty_staff'
+        AND pi.entity_type = 'node'
+        AND pi.entity_id = node.nid
+        AND field_mentor_pidm_value = :pidm", array(':pidm' => $obj->pidm))->fetchField();
+
+
+        if ($nid) {
+          $node = node_load($nid);
+          update_mentor_nodes($node, $field, $item_text);
+          $count++;
+        }
+      }
+    }
+  }
+  return array('count' => $count);
+}
+
+/**
+ * Implements hook_cron() function
+ * set up nightly cron job
+ **/
+function client_mentor_cron() {
+  // execute on cron runs between 11pm and 3am
+  if( date('G') > 23 && date('G') < 3){
+    $form_state = array();
+    $form_state['values']['file_data'] = 'downloadFacultyInformation';
+    drupal_form_submit('client_mentor_form', $form_state);
+
+    $form_state['values']['file_data'] = 'downloadPublications';
+    drupal_form_submit('client_mentor_form', $form_state);
+
+    $form_state['values']['file_data'] = 'downloadPresentations';
+    drupal_form_submit('client_mentor_form', $form_state);
+
+    $form_state['values']['file_data'] = 'downloadEducationalHistory';
+    drupal_form_submit('client_mentor_form', $form_state);
+
+    $form_state['values']['file_data'] = 'downloadProfessionalService';
+    drupal_form_submit('client_mentor_form', $form_state);
+
+    watchdog('client Mentor', 'Mentor sync form executed', array());
+  }
+}
+
+function client_mentor_compare_weights($a, $b) {
+  if($a->sortOrder == $b->sortOrder) {
+    return 0;
+  }
+  return ($a->sortOrder < $b->sortOrder) ? -1 : 1;
+}

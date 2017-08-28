@@ -1,0 +1,7 @@
+name = Client Mentor Sync
+description = Calls in the data from Mentor to sync Staff / Student Web profile data
+package = Client Custom
+version = VERSION
+core = 7.x
+files[] = client_mentor.module
+dependencies[] = entity

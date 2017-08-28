@@ -1,0 +1,175 @@
+/*
+ * @file
+ * Panels Style
+ * Styles for panels panes, fielded panes, etc
+ */
+
+
+// Grid styles for one pane for now. Maybe later we add general grid styles.
+.pane-bundle-homepage-grid {
+  .grid-items {
+    &:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+  }
+  .homepage-grid {
+    padding: 3em 0 0 0;
+  }
+  .grid-item {
+    width: 25%;
+    @media only screen and (max-width: 580px) {
+      width: 50%;
+    }
+    @media only screen and (min-width:580px) and (max-width: 800px) {
+      width: 33.3%;
+    }
+    float: left;
+    .grid-item-inner {
+      margin: 10px;
+      padding: 10px 10px 2.5em 10px;
+      position: relative;
+    }
+  }
+}
+.pane-bundle-homepage-banner {
+  .left {
+    width: 50%;
+    float: left;
+    @media only screen and (max-width: 580px) {
+      width: 100%;
+      float: none;
+    }
+    h1 {
+      text-align: center;
+      text-indent: -4000px;
+      a {
+        display: block;
+        background-image: url('../images/the-future-starts-today.png');
+        background-repeat: no-repeat;
+        background-position:top center;
+        background-size: cover;
+        margin: 0 auto;
+        @media only screen and (max-width: 580px) {
+          margin-top: -30px;
+          width: 210px;
+          height: 250px;
+        }
+        @media only screen and (min-width:580px) and (max-width: 800px) {
+          width: 338px;
+          height: 400px;
+        }
+        @media only screen and (min-width:800px) {
+          width: 400px;
+          height: 473px;
+        }
+      }
+    }
+  }
+  .video-link-container {
+    float: left;
+    text-align: center;
+    width: 100%;
+    position: absolute;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    @media only screen and (max-width: 580px) {
+      position: static;
+      margin-top: 40px;
+      a {
+        font-size: 10px;
+      }
+    }
+  }
+  .homepage-banner {
+    background-repeat:no-repeat;
+    background-size: 100%;
+    background-position:top center;
+    background-size: cover;
+    text-align: center;
+    padding: 7em 0;
+    position: relative;
+    @media only screen and (max-width: 580px) {
+      min-height: 200px;
+    }
+    @media only screen and (min-width:580px) and (max-width: 800px) {
+      min-height: 450px;
+    }
+    @media only screen and (min-width:800px) {
+      min-height: 508px;
+    }
+    h1 {
+      font-weight: bold;
+    }
+    a.video {
+      color: #e52d27;
+      opacity: .9;
+      .fa {
+        font-size: 8em;
+      }
+      &:hover {
+        opacity: 1;
+        color: #e52d27;
+      }
+    }
+  }
+}
+
+
+
+.pane-bundle-homepage-grid {
+  .grid-item-inner {
+    text-align: center;
+    background: #e7e7e7;
+    h3 {
+      margin-bottom: 5px;
+      padding-bottom: 0px;
+      font-family: "Open Sans Condensed", "Helvetica", Arial, Sans-serif;
+      text-transform: uppercase;
+      font-weight: 600;
+      font-size: 24px;
+    }
+    h4 {
+      font-family: "Lato", Arial, Sans-serif;
+      font-size: 18px;
+    }
+    .grid-item-cta {
+      position: absolute;
+      z-index: 100;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      a {
+        @include cta-primary();
+        font-size: 14px;
+        @media only screen and (max-width: 800px) {
+          font-size: 12px;
+          padding: 0.7em 0 0.6em !important;
+        }
+        width: 100%;
+        margin: 0;
+        padding: 0.7em 0 0.6em !important;
+      }
+    }
+    .grid-item-hover {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: $dark-grey;
+      color: $light-grey;
+      z-index: 99;
+      height: 100%;
+      .text {
+        margin: 15px;
+        font-size: 14px;
+        text-align: left;
+        line-height: 18px;
+      }
+    }
+  }
+}

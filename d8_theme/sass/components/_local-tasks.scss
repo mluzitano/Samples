@@ -1,0 +1,18 @@
+//Theme the local tasks tabs for admins
+#block-client-theme-local-tasks ul {
+  @extend .nav;
+  @extend .nav-tabs;
+  margin-bottom: 1rem;
+}
+
+#block-client-theme-local-tasks li {
+  @extend .nav-item;
+}
+
+#block-client-theme-local-tasks li a {
+  @extend .nav-link;
+}
+
+#block-client-theme-local-tasks .is-active {
+  @extend .active;
+}

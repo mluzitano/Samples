@@ -1,0 +1,8 @@
+.paragraph--type--foundation-highlights-column a {
+  @extend .btn;
+  @extend .btn-foundation;
+}
+
+.paragraph--type--foundation-highlights .container > div {
+  @extend .row;
+}

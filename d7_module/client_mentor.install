@@ -1,0 +1,20 @@
+<?php
+/**
+ * Implements hook_requirements().
+ * @param $phase
+ */
+function client_mentor_requirements($phase){
+  $requirements = array();
+  $t = get_t();
+  if ($phase == 'install') {
+    $node_types = node_type_get_types();
+    if(empty($node_types['faculty_staff'])) {
+      $requirements['client_mentor'] = array(
+        'title' => $t('Client Mentor Module'),
+        'description' => $t('Content type "faculty_staff" is required by the Client Mentor module.'),
+        'severity' => REQUIREMENT_WARNING,
+      );
+    }
+  }
+  return $requirements;
+}

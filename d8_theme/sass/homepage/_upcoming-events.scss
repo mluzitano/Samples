@@ -1,0 +1,21 @@
+.upcoming-events {
+  background-color: $light-blue;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+.upcoming-events h2 {
+  @extend .thin-heading;
+  color: $white;
+}
+
+.upcoming-events h3 a {
+  color: $dark-gray;
+  text-transform: initial;
+}
+
+.upcoming-events .views-row {
+  background-color: rgba(255,255,255,0.8);
+  @extend .container;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}

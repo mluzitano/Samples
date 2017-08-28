@@ -1,0 +1,138 @@
+/*
+ * @file
+ * Page Styles
+ * Styles for custom pages, homepages, etc.
+ */
+
+// Homepage
+
+.front-page {
+  #content-wrapper {
+    .container {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  }
+  #main-content {
+    margin: 0;
+    background-image: url();
+    background-color: #FFFFFF;
+  }
+  &.admin-menu {
+    #content-wrapper {
+      margin-top: -30px;
+    }
+  }
+  .panel-pane {
+    .block-inner {
+      //padding: 0 20px;
+    }
+  }
+  .pane-bundle-homepage-banner {
+    .block-inner {
+      padding: 0;
+    }
+  }
+  .countdown { // Countdown
+    background-image: url(../images/starry_bg.jpg);
+    background-repeat:no-repeat;
+    background-size: 100%;
+    background-position:top center;
+    background-size: cover;
+    text-align: center;
+    margin: 2em 0 0 0;
+    color: #FFF;
+    padding: 4em 0 2em 0;
+    #cd-text1 {
+      font-size: 16px;
+      margin-bottom: 1em;
+    }
+    .time-format {
+      color: #797C80;
+    }
+  }
+  #block-system-main {
+    margin-bottom: 0;
+  }
+}
+
+// Tracker page with map embed
+.page-tracker {
+   height:100%;
+  #content-wrapper {
+    position: relative;
+    height: 100%;
+    padding-bottom: 0;
+    //max-height: 768px;
+    #timescape-frame {
+      iframe {
+        position: absolute;
+        height: 100%;
+        top: 0;
+        left: 0;
+        @media only screen and (min-width: 1160px) {
+          height: 85%;
+        }
+      }
+    }
+    .container {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  }
+  #block-system-main {
+    .contextual-links-region {
+      position:static;
+    }
+  }
+  #page-title {
+    display: none;
+  }
+  #columns {
+    width: 100%;
+    #main-content,
+    p {
+      margin: 0;
+      padding: 0;
+    }
+  }
+  #timescape-frame {
+    max-width: 100%;
+  }
+  .meshim_widget_components_chatButton_Button{
+    display: none;
+  }
+  &.admin-menu {
+    #content-wrapper {
+      margin-top: -30px;
+    }
+  }
+}
+
+// Front page styles for tweaks to old front page
+
+.bean-banner {
+  position: relative;
+  .call-to-action {
+    position: relative;
+    top: 100%;
+    transform: translateY(175%);
+    -webkit-transform: translateY(175%);
+    -ms-transform: translateY(175%);
+    transform: translateY(175%);
+    @media only screen and (max-width: 768px) {
+      transform: translateY(195%);
+      -webkit-transform: translateY(195%);
+      -ms-transform: translateY(195%);
+      transform: translateY(195%);
+    }
+    @media only screen and (min-width: 1200px) {
+      transform: translateY(270%);
+      -webkit-transform: translateY(270%);
+      -ms-transform: translateY(270%);
+      transform: translateY(270%);
+    }
+  }
+}
